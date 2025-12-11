@@ -173,8 +173,8 @@ def nn_epoch(X, y, W1, W2, lr = 0.1, batch=100):
 
         dw1=np.transpose(X_input)@G1/m
         dw2=np.transpose(Z1)@G2/m
-        W1-=dw1
-        W2-=dw2
+        W1-=lr*dw1
+        W2-=lr*dw2
     ### END YOUR CODE
 
 
