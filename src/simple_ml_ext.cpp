@@ -84,7 +84,7 @@ void softmax_regression_epoch_cpp(const float *X, const unsigned char *y,
             for(size_t k_index=0;k_index<k;k_index++){
                 dt[n_index*k+k_index]=0;
                 for(size_t m_index=0;m_index<num_example;m_index++){
-                    dt[n_index*k+k_index]+=X[x_start+m_index*n+n_index]*(Z[m_index*k+k_index]-Iy[m_index*k+k_index])/m;
+                    dt[n_index*k+k_index]+=X[x_start+m_index*n+n_index]*(Z[m_index*k+k_index]-Iy[m_index*k+k_index])/num_example;
                 }
                 theta[n_index*k+k_index]=theta[n_index*k+k_index]-lr*dt[n_index*k+k_index];
             }
