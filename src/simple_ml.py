@@ -106,7 +106,7 @@ def softmax_regression_epoch(X, y, theta, lr = 0.1, batch=100):
     ### BEGIN YOUR CODE
     epochs=(np.floor(X.shape[0]/batch)+1).astype(np.int8)
     for i in range(epochs):
-        row=np.arange(i*batch,(i+1)*batch)
+        row=np.arange(i*batch,min((i+1)*batch,X.shape[1]))
         X_input=X[row]
         y_input=y[row]
         num_examples=X_input.shape[0] # row
