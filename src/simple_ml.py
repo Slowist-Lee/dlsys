@@ -148,7 +148,32 @@ def nn_epoch(X, y, W1, W2, lr = 0.1, batch=100):
         None
     """
     ### BEGIN YOUR CODE
-    pass
+    if X.shape[0]%batch==0:
+        epochs=X.shape[0]//batch
+    else:
+        epochs=X.shape[0]//batch+1
+    for i in range(epochs):
+        row=np.arange(i*batch,min((i+1)*batch,X.shape[0]))
+        X_input=X[row]
+        y_input=y[row]
+
+        num_examples=X_input.shape[0] # row
+        num_class=W2.shape[1] # col
+
+        m=X_input.shape[0]
+        Z1=np.maximum(X_input@W1,0)
+
+        Iy=np.zeros((num_examples,num_class))
+        cols=np.arange(num_examples)
+        Iy[cols,y_input]=1
+
+        G2=np.exp(Z1@W2)/np.sum(np.exp(Z1@W2).reshape(m,1))-Iy
+        G1=(Z1>0)*(G2@np.transpose(W2))
+
+        dw1=np.transpose(X_input)@G1/m
+        dw2=np.transpose(Z1)@G2/m
+        W1-=dw1
+        W2-=dw2
     ### END YOUR CODE
 
 
