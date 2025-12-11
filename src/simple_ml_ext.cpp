@@ -73,7 +73,7 @@ void softmax_regression_epoch_cpp(const float *X, const unsigned char *y,
         }
 
         for(size_t m_index=0;m_index<num_example;m_index++){
-      k_indexsize_t      for(size_t k_index=0;k_index<k;k_index++){
+            for(size_t k_index=0;k_index<k;k_index++){
                 Z[m_index*k+k_index]=data[m_index*k+k_index]/data_sum[m_index];
             }
         }
