@@ -112,12 +112,12 @@ def softmax_regression_epoch(X, y, theta, lr = 0.1, batch=100):
     num_examples=X_input.shape[0] # row
     num_class=theta.shape[1] # col
     m=X_input.shape[0]
-    Z=np.exp(theta@X_input)/np.sum(np.exp(theta@X_input),axis=0)
+    Z=np.exp(np.transpose(theta)@X_input)/np.sum(np.exp(np.transpose(theta)@X_input),axis=0)
     Iy=np.zeros((num_class,num_examples))
     cols=np.arange(num_examples)
     Iy[y_input,cols]=1
     dt=np.transpose(X_input)@(Z-Iy)/m
-    
+
     theta=theta-dt
     ### END YOUR CODE
 
