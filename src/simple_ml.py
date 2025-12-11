@@ -168,7 +168,7 @@ def nn_epoch(X, y, W1, W2, lr = 0.1, batch=100):
         cols=np.arange(num_examples)
         Iy[cols,y_input]=1
 
-        G2=np.exp(Z1@W2)/np.sum(np.exp(Z1@W2).reshape(m,hidden_dim))-Iy
+        G2=np.exp(Z1@W2)/(np.sum(np.exp(Z1@W2)).reshape(m,1))-Iy
         G1=(Z1>0)*(G2@np.transpose(W2))
 
         dw1=np.transpose(X_input)@G1/m
