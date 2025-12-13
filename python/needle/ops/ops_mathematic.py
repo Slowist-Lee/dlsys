@@ -112,7 +112,7 @@ class EWiseDiv(TensorOp):
 
     def compute(self, a, b):
         ### BEGIN YOUR SOLUTION
-        return array_api.devide(a,b)
+        return array_api.divide(a,b)
         ### END YOUR SOLUTION
 
     def gradient(self, out_grad, node):
@@ -147,10 +147,14 @@ def divide_scalar(a, scalar):
 class Transpose(TensorOp):
     def __init__(self, axes: Optional[tuple] = None):
         self.axes = axes
-
     def compute(self, a):
         ### BEGIN YOUR SOLUTION
-        return array_api.transpose(a,self.axes)
+        new_dim=a.ndim
+        if self.axes == None:
+            new_dim[-1],new_dim[-2]=new_dim[-2],new_dim[-1]
+        else:
+            new_dim[self.axes[0]],new_dim[self.axes[1]]=new_dim[self.axes[1]],new_dim[self.axes[0]]
+        return array_api.transpose(a,a.ndim)
         ### END YOUR SOLUTION
 
     def gradient(self, out_grad, node):
