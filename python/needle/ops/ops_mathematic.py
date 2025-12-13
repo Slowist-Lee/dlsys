@@ -99,7 +99,8 @@ class PowerScalar(TensorOp):
 
     def gradient(self, out_grad, node):
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        x=node.inputs
+        return out_grad*self.scalar*array_api.power(x,self.scalar-1)
         ### END YOUR SOLUTION
 
 
@@ -117,7 +118,10 @@ class EWiseDiv(TensorOp):
 
     def gradient(self, out_grad, node):
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        a,b=node.inputs
+        denomitor=array_api.divide(1,array_api.pow(b,2))
+        numerator=array_api.zeros(a.shape)-a
+        return out_grad*array_api.divide(1,b),out_grad*numerator/denomitor
         ### END YOUR SOLUTION
 
 
@@ -136,7 +140,7 @@ class DivScalar(TensorOp):
 
     def gradient(self, out_grad, node):
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        return out_grad*node.inputs/self.scalar
         ### END YOUR SOLUTION
 
 
