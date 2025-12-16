@@ -242,46 +242,61 @@ def summation(a, axes=None):
     return Summation(axes)(a)
 
 
+# class MatMul(TensorOp):
+#     def compute(self, a, b):
+#         ### BEGIN YOUR SOLUTION
+#         return array_api.matmul(a,b)
+#         ### END YOUR SOLUTION
+#     def gradient(self, out_grad, node):
+#         ### BEGIN YOUR SOLUTION
+#         a=node.inputs[0]
+#         b=node.inputs[1]
+
+#         grad_a=matmul(out_grad,transpose(b))
+#         grad_b=matmul(transpose(a),out_grad)
+
+#         # broadcast
+#         diff_a=len(grad_a.shape)-len(a.shape)
+#         diff_b=len(grad_b.shape)-len(b.shape)
+
+#         pad_a_shape=[1]*diff_a+list(a.shape)
+#         pad_b_shape=[1]*diff_b+list(b.shape)
+
+#         axes_a=list(range(diff_a))
+#         axes_b=list(range(diff_b))
+
+#         for i in range(len(pad_a_shape)):
+#             if pad_a_shape[i]!=grad_a.shape[i] and i not in axes_a:
+#                 axes_a.append(i)
+
+#         for i in range(len(pad_b_shape)):
+#             if pad_b_shape[i] != grad_b.shape[i] and i not in axes_b:
+#                 axes_b.append(i)
+
+#         if axes_a:
+#             grad_a=summation(grad_a,tuple(axes_a))
+#         if axes_b:
+#             grad_b=summation(grad_b,tuple(axes_b))
+
+#         grad_a=grad_a.reshape(a.shape)
+#         grad_b=grad_b.reshape(b.shape)
+#         return grad_a, grad_b
+#         ### END YOUR SOLUTION
+
+
 class MatMul(TensorOp):
     def compute(self, a, b):
-        ### BEGIN YOUR SOLUTION
-        return array_api.matmul(a,b)
-        ### END YOUR SOLUTION
+        return a@b
+
     def gradient(self, out_grad, node):
-        ### BEGIN YOUR SOLUTION
-        a=node.inputs[0]
-        b=node.inputs[1]
+        a, b = node.inputs
+        adjoint1 = out_grad @ transpose(b)
+        adjoint2 = transpose(a) @ out_grad
+        adjoint1 = summation(adjoint1, axes=tuple(range(len(adjoint1.shape) - len(a.shape))))
+        adjoint2 = summation(adjoint2, axes=tuple(range(len(adjoint2.shape) - len(b.shape))))
+        return adjoint1, adjoint2
 
-        grad_a=matmul(out_grad,transpose(b))
-        grad_b=matmul(transpose(a),out_grad)
 
-        # broadcast
-        diff_a=len(grad_a.shape)-len(a.shape)
-        diff_b=len(grad_b.shape)-len(b.shape)
-
-        pad_a_shape=[1]*diff_a+list(a.shape)
-        pad_b_shape=[1]*diff_b+list(b.shape)
-
-        axes_a=list(range(diff_a))
-        axes_b=list(range(diff_b))
-
-        for i in range(len(pad_a_shape)):
-            if pad_a_shape[i]!=grad_a.shape[i] and i not in axes_a:
-                axes_a.append(i)
-
-        for i in range(len(pad_b_shape)):
-            if pad_b_shape[i] != grad_b.shape[i] and i not in axes_b:
-                axes_b.append(i)
-
-        if axes_a:
-            grad_a=summation(grad_a,tuple(axes_a))
-        if axes_b:
-            grad_b=summation(grad_b,tuple(axes_b))
-
-        grad_a=grad_a.reshape(a.shape)
-        grad_b=grad_b.reshape(b.shape)
-        return grad_a, grad_b
-        ### END YOUR SOLUTION
 
 def matmul(a, b):
     return MatMul()(a, b)
@@ -335,18 +350,32 @@ class Exp(TensorOp):
 def exp(a):
     return Exp()(a)
 
+# # RELU: max(0,x)
+# class ReLU(TensorOp):
+#     def compute(self, a):
+#         ### BEGIN YOUR SOLUTION
+#         # 前向计算不需要cache，已经是实际数据了
+#         mask = (a>0)
+#         return a*mask
+#         ### END YOUR SOLUTION
+
+#     def gradient(self, out_grad, node):
+#         ### BEGIN YOUR SOLUTION
+#         # node.inputs[0] 是一个对象，并不是一个具体的值，所以只能realize_cached_data
+#         mask = (node.inputs[0].realize_cached_data()>0)
+#         return out_grad*mask
+#         ### END YOUR SOLUTION
 
 class ReLU(TensorOp):
     def compute(self, a):
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        return array_api.maximum(a, 0)
         ### END YOUR SOLUTION
 
     def gradient(self, out_grad, node):
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        return out_grad * Tensor(array_api.greater(node.inputs[0].realize_cached_data(), 0))
         ### END YOUR SOLUTION
-
 
 def relu(a):
     return ReLU()(a)

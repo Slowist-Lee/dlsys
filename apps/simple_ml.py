@@ -97,9 +97,36 @@ def nn_epoch(X, y, W1, W2, lr=0.1, batch=100):
     """
 
     ### BEGIN YOUR SOLUTION
-    raise NotImplementedError()
-    ### END YOUR SOLUTION
+    if X.shape[0]%batch==0:
+        epochs=X.shape[0]//batch
+    else:
+        epochs=X.shape[0]//batch+1
+    for i in range(epochs):
+        W1.requires_grad=True
+        W2.requires_grad=True   
+        row=np.arange(i*batch,min((i+1)*batch,X.shape[0]))
+        X_input=X[row]
+        y_input=y[row]
+        X_batch=ndl.Tensor(X_input)
+        # one hot coding
+        # y_one_hot = np.zeros((y.shape[0], W2.shape[-1]))
+        # y_one_hot[np.arange(y.size), y] = 1
 
+        # Y_batch=ndl.Tensor(y_one_hot)
+        y_one_hot = np.zeros((y_input.shape[0], W2.shape[-1]))
+        y_one_hot[np.arange(y_input.size), y_input] = 1
+        Y_batch = ndl.Tensor(y_one_hot)
+        # 组件计算原件
+        dig1=X_batch@W1
+        dig2=ndl.relu(dig1)
+        dig3=dig2@W2
+        loss=softmax_loss(dig3,Y_batch)
+        loss.backward()
+        new_W1=ndl.Tensor(W1.numpy()-lr*W1.grad.numpy())
+        new_W2=ndl.Tensor(W2.numpy()-lr*W2.grad.numpy())
+        W1,W2=new_W1,new_W2
+    return (W1,W2)
+    ### END YOUR SOLUTION
 
 ### CODE BELOW IS FOR ILLUSTRATION, YOU DO NOT NEED TO EDIT
 
