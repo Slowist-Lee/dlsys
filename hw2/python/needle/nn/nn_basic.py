@@ -96,12 +96,27 @@ class Linear(Module):
 
     def forward(self, X: Tensor) -> Tensor:
         ### BEGIN YOUR SOLUTION
-        shape=(X.shape[0],self.out_features)
+        i = 0
+        while X.shape[i]==1:
+            i+=1
+        shape=(X.shape[i],self.out_features)
         if self.bias:
             # 不用转置
             # weight本来就是(in_features, out_features)
+            print(f"X. shape: {X.shape}")
+            print(f"weight.shape: {self.weight. shape}")
+            print(f"bias.shape: {self.bias.shape if self.bias else None}")
+            print(f"target shape: {shape}")
+            print(f"broadcast bias: {ops.broadcast_to(self.bias,shape)}")
+            print(f"matmul: {X@self.weight}")
+            print(f"matmul shape: {X@self.weight.shape}")
             return X@self.weight+ops.broadcast_to(self.bias,shape)
         else:
+            print(f"X. shape: {X.shape}")
+            print(f"weight.shape: {self.weight.shape}")
+            # print(f"bias.shape: {self.bias.shape if self.bias else None}")
+            # print(f"target shape: {shape}")
+            # print(f"broadcast bias: {ops.broadcast_to(self.bias,shape)}")
             return X@ops.transpose(self.weight)
         ### END YOUR SOLUTION
 
