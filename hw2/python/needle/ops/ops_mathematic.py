@@ -207,7 +207,9 @@ class BroadcastTo(TensorOp):
         for i in range(len(new_shape)):
             if new_shape[i]==1 and self.shape[i]>1:
                 new_axes.append(i)
-        return reshape(summation(out_grad,tuple(new_axes)),a.shape)
+        grad = summation(out_grad,tuple(new_axes)) if tuple(new_axes) else out_grad
+
+        return reshape(grad,a.shape)
         ### END YOUR SOLUTION
 
 

@@ -98,9 +98,11 @@ class Linear(Module):
         ### BEGIN YOUR SOLUTION
         shape=(X.shape[0],self.out_features)
         if self.bias:
-            return X@transpose(self.weight)+broadcast_to(self.bias,shape)
+            # 不用转置
+            # weight本来就是(in_features, out_features)
+            return X@self.weight+ops.broadcast_to(self.bias,shape)
         else:
-            return X@transpose(self.weight)
+            return X@ops.transpose(self.weight)
         ### END YOUR SOLUTION
 
 
