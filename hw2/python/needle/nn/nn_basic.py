@@ -99,24 +99,22 @@ class Linear(Module):
         i = 0
         while X.shape[i]==1:
             i+=1
-        shape=(X.shape[i],self.out_features)
+        # shape=(X.shape[i],self.out_features)
         if self.bias:
             # 不用转置
             # weight本来就是(in_features, out_features)
-            print(f"X. shape: {X.shape}")
-            print(f"weight.shape: {self.weight. shape}")
-            print(f"bias.shape: {self.bias.shape if self.bias else None}")
-            print(f"target shape: {shape}")
-            print(f"broadcast bias: {ops.broadcast_to(self.bias,shape)}")
-            print(f"matmul: {X@self.weight}")
-            print(f"matmul shape: {X@self.weight.shape}")
-            return X@self.weight+ops.broadcast_to(self.bias,shape)
-        else:
-            print(f"X. shape: {X.shape}")
-            print(f"weight.shape: {self.weight.shape}")
+            # DEBUG
+            # print(f"X. shape: {X.shape}")
+            # print(f"weight.shape: {self.weight. shape}")
             # print(f"bias.shape: {self.bias.shape if self.bias else None}")
             # print(f"target shape: {shape}")
             # print(f"broadcast bias: {ops.broadcast_to(self.bias,shape)}")
+            # print(f"broadcast bias shape: {ops.broadcast_to(self.bias,shape).shape}")
+            # print(f"matmul: {X@self.weight}")
+            # print(f"matmul shape: {(X@self.weight).shape}")
+            out = X@self.weight
+            return out+ops.broadcast_to(self.bias,out.shape)
+        else:
             return X@ops.transpose(self.weight)
         ### END YOUR SOLUTION
 
@@ -124,14 +122,15 @@ class Linear(Module):
 class Flatten(Module):
     def forward(self, X: Tensor) -> Tensor:
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        n=X.shape[0]
+        return X.reshape((n,-1))
         ### END YOUR SOLUTION
 
 
 class ReLU(Module):
     def forward(self, x: Tensor) -> Tensor:
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        return ops.relu(x)
         ### END YOUR SOLUTION
 
 class Sequential(Module):
@@ -141,14 +140,21 @@ class Sequential(Module):
 
     def forward(self, x: Tensor) -> Tensor:
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        for module in self.modules:
+            y=module(x)
+            x=y
+        return y
         ### END YOUR SOLUTION
 
 
 class SoftmaxLoss(Module):
     def forward(self, logits: Tensor, y: Tensor) -> Tensor:
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        n=logits.shape[1]
+        # 一个要点是logsumexp而不是softmax
+        # 另一个是要mean，真无敌了
+        zy=ops.summation(logits*init.one_hot(n,y), axes=(1,))
+        return ops.summation(ops.logsumexp(logits,axes=(1,))-zy)/logits.shape[0]
         ### END YOUR SOLUTION
 
 
@@ -159,28 +165,55 @@ class BatchNorm1d(Module):
         self.eps = eps
         self.momentum = momentum
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        self.weight = Parameter(init.ones(dim, device=device, dtype=dtype))
+        self.bias   = Parameter(init.zeros(dim, device=device, dtype=dtype))
+        self.running_mean=Parameter(init.zeros(dim, device=device, dtype=dtype))
+        self.running_var= Parameter(init.ones(dim, device=device, dtype=dtype))
         ### END YOUR SOLUTION
 
     def forward(self, x: Tensor) -> Tensor:
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        if self.training:
+            n=x.shape[0]
+            x_mean=ops.summation(x,0)/n
+            delta_x=x-ops.broadcast_to(x_mean.reshape((1,x.shape[1])),x.shape)
+            x_var=ops.summation(ops.power_scalar(delta_x,2),0)/n
+            self.running_mean=(1-self.momentum)*self.running_mean+self.momentum*x_mean
+            self.running_var=(1-self.momentum)*self.running_var+self.momentum*x_var
+            denomitor=ops.broadcast_to(ops.power_scalar((x_var+self.eps),0.5).reshape((1,x.shape[1])),x.shape)
+            return self.weight*(delta_x/denomitor)+self.bias
+        else:
+            n=x.shape[0]
+            delta_x=x-ops.broadcast_to(self.running_mean.reshape((1,x.shape[1])),x.shape)
+            denomitor=ops.broadcast_to(ops.power_scalar((self.running_var+self.eps),0.5).reshape((1,x.shape[1])),x.shape)
+            return self.weight*(delta_x/denomitor)+self.bias
         ### END YOUR SOLUTION
 
 
 
 class LayerNorm1d(Module):
+    # LayerNorm：在Layer维度上算平均，不是在batch上
     def __init__(self, dim: int, eps: float = 1e-5, device: Any | None = None, dtype: str = "float32") -> None:
         super().__init__()
         self.dim = dim
         self.eps = eps
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        # self.weight=1
+        # self.bias=0
+
+        # 需要更新的参数!
+        self.weight = Parameter(init.ones(dim, device=device, dtype=dtype))
+        self.bias   = Parameter(init.zeros(dim, device=device, dtype=dtype))
         ### END YOUR SOLUTION
 
     def forward(self, x: Tensor) -> Tensor:
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        m=x.shape[1]
+        x_mean=ops.summation(x,1)/m
+        delta_x=x-ops.broadcast_to(x_mean.reshape((x.shape[0],1)),x.shape)
+        x_var=ops.summation(ops.power_scalar(delta_x,2),1)/m
+        denomitor=ops.broadcast_to(ops.power_scalar((x_var+self.eps),0.5).reshape((x.shape[0],1)),x.shape)
+        return self.weight*(delta_x/denomitor)+self.bias
         ### END YOUR SOLUTION
 
 
@@ -188,10 +221,13 @@ class Dropout(Module):
     def __init__(self, p: float = 0.5) -> None:
         super().__init__()
         self.p = p
-
     def forward(self, x: Tensor) -> Tensor:
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        if not self.training:
+            return x
+        shape=x.shape
+        mask=init.randb(*shape,p=1-self.p)
+        return mask*x/(1-self.p)
         ### END YOUR SOLUTION
 
 
@@ -202,5 +238,5 @@ class Residual(Module):
 
     def forward(self, x: Tensor) -> Tensor:
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        return self.fn(x)+x
         ### END YOUR SOLUTION
