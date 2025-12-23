@@ -17,6 +17,7 @@ class Optimizer:
 
 class SGD(Optimizer):
     def __init__(self, params, lr=0.01, momentum=0.0, weight_decay=0.0):
+        
         super().__init__(params)
         self.lr = lr
         self.momentum = momentum
@@ -25,7 +26,13 @@ class SGD(Optimizer):
 
     def step(self):
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        for param in self.params:
+            beta=self.momentum
+            grad=param.grad.data+self.weight_decay*param.data
+            ut=self.u.get(param,0)
+            new_u=(beta*ut+(1-beta)*grad)
+            self.u[param]=new_u
+            param.data=param.data-self.lr*self.u[param]
         ### END YOUR SOLUTION
 
     def clip_grad_norm(self, max_norm=0.25):
