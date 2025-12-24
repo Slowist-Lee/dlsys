@@ -65,8 +65,24 @@ class Adam(Optimizer):
 
         self.m = {}
         self.v = {}
-
     def step(self):
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        self.t+=1 # 很妙的，每执行一个step, +=1
+        for param in self.params:
+            if param.grad:
+                grad=param.grad.detach().data+self.weight_decay*param.detach().data
+                # 这两行也是参考的
+                if param not in self.m.keys():
+                    self.m[param] = ndl.zeros_like(param.grad, requires_grad=False)
+                if param not in self.v.keys():
+                    self.v[param] = ndl.zeros_like(param.grad, requires_grad=False)
+                mt=self.m[param]
+                vt=self.v[param]
+                new_m=self.beta1*mt+(1-self.beta1)*grad.data
+                self.m[param]=new_m
+                new_v=self.beta2*vt+(1-self.beta2)*grad.data*grad.data
+                self.v[param]=new_v
+                m_bias=new_m/(1-self.beta1**self.t)
+                v_bias=new_v/(1-self.beta2**self.t)
+                param.data=param.detach().data-(self.lr*m_bias)/(ndl.power_scalar(v_bias,0.5).detach().data+self.eps)
         ### END YOUR SOLUTION

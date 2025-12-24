@@ -181,12 +181,19 @@ class BatchNorm1d(Module):
             self.running_mean=(1-self.momentum)*self.running_mean+self.momentum*x_mean
             self.running_var=(1-self.momentum)*self.running_var+self.momentum*x_var
             denomitor=ops.broadcast_to(ops.power_scalar((x_var+self.eps),0.5).reshape((1,x.shape[1])),x.shape)
-            return self.weight*(delta_x/denomitor)+self.bias
+
+            w = ops.broadcast_to(self.weight.reshape((1,x.shape[1])), x.shape)
+            b = ops.broadcast_to(self.bias.reshape((1,x.shape[1])), x.shape)
+
+            return w*(delta_x/denomitor)+b
         else:
             n=x.shape[0]
             delta_x=x-ops.broadcast_to(self.running_mean.reshape((1,x.shape[1])),x.shape)
             denomitor=ops.broadcast_to(ops.power_scalar((self.running_var+self.eps),0.5).reshape((1,x.shape[1])),x.shape)
-            return self.weight*(delta_x/denomitor)+self.bias
+
+            w = ops.broadcast_to(self.weight.reshape((1,x.shape[1])), x.shape)
+            b = ops.broadcast_to(self.bias.reshape((1,x.shape[1])), x.shape)
+            return w*(delta_x/denomitor)+b
         ### END YOUR SOLUTION
 
 
@@ -213,7 +220,9 @@ class LayerNorm1d(Module):
         delta_x=x-ops.broadcast_to(x_mean.reshape((x.shape[0],1)),x.shape)
         x_var=ops.summation(ops.power_scalar(delta_x,2),1)/m
         denomitor=ops.broadcast_to(ops.power_scalar((x_var+self.eps),0.5).reshape((x.shape[0],1)),x.shape)
-        return self.weight*(delta_x/denomitor)+self.bias
+        w = ops.broadcast_to(self.weight.reshape((1, x.shape[1])), x.shape)
+        b = ops.broadcast_to(self.bias.reshape((1, x.shape[1])), x.shape)
+        return w*(delta_x/denomitor)+b
         ### END YOUR SOLUTION
 
 
