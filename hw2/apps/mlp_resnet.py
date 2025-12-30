@@ -13,7 +13,19 @@ np.random.seed(0)
 
 def ResidualBlock(dim, hidden_dim, norm=nn.BatchNorm1d, drop_prob=0.1):
     ### BEGIN YOUR SOLUTION
-    raise NotImplementedError()
+    return nn.Sequential(
+        nn.Residual(
+            nn.Sequential(
+                nn.Linear(dim,hidden_dim),
+                norm(),
+                nn.ReLU(),
+                nn.Dropout(drop_prob),
+                nn.Linear(hidden_dim,dim),
+                norm(),
+                )
+            ),
+        nn.ReLU()
+        )
     ### END YOUR SOLUTION
 
 
@@ -26,14 +38,41 @@ def MLPResNet(
     drop_prob=0.1,
 ):
     ### BEGIN YOUR SOLUTION
-    raise NotImplementedError()
+    return nn.Sequential(
+        nn.Linear(dim,hidden_dim),
+        nn.ReLU(),
+        *[ResidualBlock(dim=hidden_dim, hidden_dim=hidden_dim//2, norm=norm, drop_prob=drop_prob) for _ in range(num_blocks)],
+        nn.Linear(hidden_dim//2,num_classes)
+    )
     ### END YOUR SOLUTION
 
 
 def epoch(dataloader, model, opt=None):
     np.random.seed(4)
     ### BEGIN YOUR SOLUTION
-    raise NotImplementedError()
+    loss_function=nn.SoftmaxLoss()
+
+    if opt:
+        model.train()
+    else:
+        model.eval()
+
+    for x,y in dataloader:
+        y_output=model(x)
+        batch_loss=loss_function(y_output,y)
+        # ? 为什么不是y_output.shape[0]，根据softmaxloss的计算方法？
+        loss+=batch_loss*x.shape[0]
+        if opt is not None:
+            # 重置梯度是个啥
+            opt.reset_grad()
+            batch_loss.backward()
+            opt.step()
+        y=y.numpy()
+    # return error, loss
+        # 用优化器更新参数
+
+
+
     ### END YOUR SOLUTION
 
 
